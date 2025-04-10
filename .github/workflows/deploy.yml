@@ -1,44 +1,46 @@
-name: Docker Build and Deploy to Render
+name: Deploy to Render
 
 on:
   push:
     branches:
-      - main # Or any other branch you want to deploy from
-    paths:
-      - '**/*.py' # Or other paths if needed
+      - main  # Deploy when code is pushed to the 'main' branch
 
 jobs:
-  build_and_push:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PAT }}
-
-    - name: Build Docker image
-      run: |
-        docker build --platform linux/amd64 -t nguyr/my-streamlit-app .
-        docker tag nguyr/my-streamlit-app:latest nguyr/my-streamlit-app:${{ github.sha }}
-    
-    - name: Push Docker image to Docker Hub
-      run: |
-        docker push nguyr/my-streamlit-app:latest
-        docker push nguyr/my-streamlit-app:${{ github.sha }}
-
   deploy:
     runs-on: ubuntu-latest
-    needs: build_and_push
+
     steps:
-    - name: Trigger Render deploy
-      uses: peter-evans/render-deploy-action@v1
-      with:
-        render_token: ${{ secrets.RENDER_API_KEY }}
-        service_id: 'your-render-service-id'
-        image: 'nguyr/my-streamlit-app'
-        tag: 'latest'  # Or use commit hash if you want specific tagging
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Build Docker image
+        run: |
+          docker build -t nguyr/my-streamlit-app .
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push nguyr/my-streamlit-app
+
+      - name: Deploy to Render
+        uses: peter-evans/render-deploy-action@v1
+        with:
+          api-key: ${{ secrets.RENDER_API_KEY }}
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          docker-image: "docker.io/nguyr/my-streamlit-app:latest"
