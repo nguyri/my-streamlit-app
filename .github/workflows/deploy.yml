@@ -39,7 +39,7 @@ jobs:
           docker push nguyr/my-streamlit-app
 
       - name: Deploy to Render
-        uses: peter-evans/render-deploy-action@v1
+        uses: peter-evans/render-deploy-action@v2
         with:
           api-key: ${{ secrets.RENDER_API_KEY }}
           service-id: ${{ secrets.RENDER_SERVICE_ID }}
