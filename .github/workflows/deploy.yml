@@ -3,7 +3,7 @@ name: Deploy to Render
 on:
   push:
     branches:
-      - main  # Deploy when code is pushed to the 'main' branch
+      - main  # Trigger on push to 'main' branch
 
 jobs:
   deploy:
@@ -39,8 +39,8 @@ jobs:
           docker push nguyr/my-streamlit-app
 
       - name: Deploy to Render
-        uses: johnbeynon/render-deploy-action@v0.0.8
+        uses: JorgeLNJunior/render-deploy@v1.4.5
         with:
-          api-key: ${{ secrets.RENDER_API_KEY }}
-          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          service_id: ${{ secrets.RENDER_SERVICE_ID }}
+          api_key: ${{ secrets.RENDER_API_KEY }}
           docker-image: "docker.io/nguyr/my-streamlit-app:latest"
